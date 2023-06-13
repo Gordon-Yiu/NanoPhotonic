@@ -56,29 +56,34 @@ def read_parameters(xlsfilename ):
     return simulate_param
    
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++
-def update_ind_parameters(order_no, log_file, ind_sim_result, inputxlsfilename):
+def update_ind_parameters(order_no, log_file, ind_sim_result, \
+    inputxlsfilename, outputxlsfilename):
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++
 #update individual parameter after each small simulation
     import openpyxl
     #get dir name from fiel handler
     dirname= os.path.abspath(log_file.name).split('\\')[-1].split('.')[0]
-    wb = openpyxl.load_workbook(inputxlsfilename)
-    sheet1 = wb['parameters']
+    
     
     if order_no == 0:
+        wb = openpyxl.load_workbook(inputxlsfilename)
+        sheet1 = wb['parameters']
         wb.copy_worksheet(sheet1).title= dirname
+        wb.save(outputxlsfilename)
+    wb = openpyxl.load_workbook(outputxlsfilename)
     sheet2 = wb[dirname]
     
 
     #update indvisual result to coresponding position
     for column_no, column_content in enumerate(ind_sim_result, start=0):
         sheet2.cell(order_no + 6,column_no+3).value = column_content
-    wb.save(inputxlsfilename)
+    wb.save(outputxlsfilename)
     # wb.save(inputxlsfilename.split('.')[0] + '_result.' + inputxlsfilename.split('.')[1])
 
 def fdtd_solve(log_file, \
     simulate_parameters,\
-    input_xslfilename):
+    input_xslfilename,
+    output_xslfilename):
     '''
     --------------------------------------------------------'''
     #####START of fdtd_solve##################
@@ -297,7 +302,8 @@ def fdtd_solve(log_file, \
         # result.append([transmission,phase])
         # result.append(transmission)
         message_and_log(log_file, [transmission, phase].__str__())
-        update_ind_parameters(order_no, log_file, [transmission, phase], input_xslfilename)
+        update_ind_parameters(order_no, log_file, [transmission, phase], \
+        input_xslfilename, output_xslfilename)
 
     # ---end of loop for every single simulation
 
@@ -330,7 +336,8 @@ if __name__ == '__main__':
     message_and_log(log_file, 'simulating.....')
     fdtd_solve(log_file, \
     sim_parameters,\
-    sim_param_filename)
+    sim_param_filename,\
+    output_filename)
     
     #close log file
     log_file.close()
